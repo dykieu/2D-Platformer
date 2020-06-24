@@ -20,6 +20,7 @@ iconFile = 'icon.png'
 charIdleFile = 'model.png'
 dirtFile = 'dirt.png'
 grassFile = 'grass.png'
+mapFile = 'map.txt'
 
 # Grab Resources
 gameIcon = pygame.image.load(os.path.join(iconPath, iconFile))
@@ -33,29 +34,19 @@ clock = pygame.time.Clock()
 tileDimension = 50
 
 # Game map
-gameMap = [['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'],
-		['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0', '0'],
-		['0','0','0','0','0','0','0','0','0','0','0','0','0','0','2','0','0','0','0', '0'],
-		['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0', '0'],
-		['0','0','0','0','2','0','0','2','2','2','2','2','0','0','0','0','0','0','0', '0'],
-		['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0', '0'],
-		['2','2','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','2','2', '2'],
-		['1','1','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','1','1', '1'],
-		['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1', '1'],
-		['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1', '1'],
-		['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1', '1'],
-		['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1', '1'],
-		['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1', '1']]
+gameMap = []
 
 # Window demnsions
 winX = 1920
 winY = 1080
 winSize = [winX, winY]
+
 # Window settings
 pygame.display.set_caption(clientName)
 pygame.display.set_icon(gameIcon)
 screen = pygame.display.set_mode((winX, winY))
-display = pygame.Surface((960, 540))
+display = pygame.Surface(((winX/2), (winY/2)))
+scrollValue = [0, 0]
 
 # Character
 playerStart = [0, 220]
@@ -67,6 +58,21 @@ moveRight = False
 moveLeft = False
 playerRect = pygame.Rect(playerStart[0], playerStart[1], charIdle.get_width() - 50, charIdle.get_height()) 	# rectangle used for collision
 testRect = pygame.Rect(100, 700, 100, 50)
+
+def getMap(path):
+	print (path)
+	# Opens file grabs data and then splits on every newline
+	openFile = open(path, 'r')
+	data = openFile.read()
+	openFile.close()
+	data = data.split('\n')
+	temp = []
+	# convert each line into a list
+	for line in data:
+		temp.append(list(line))
+	return temp
+
+gameMap = getMap(os.path.join(envPath, mapFile))
 
 # Collision Function
 def collision (rectObj, tiles):
@@ -123,6 +129,10 @@ while True:
 	display.fill((0, 0, 0))
 	tiles = []
 
+	# Move camera with player (Centers camera on player)
+	scrollValue[0] += (playerRect.x - scrollValue[0] - (winX/4))
+	scrollValue[1] += (playerRect.y - scrollValue[1] - (winY/4))
+	
 	# Setup game map
 	yAxis = 0
 	for rows in gameMap:
@@ -130,12 +140,12 @@ while True:
 		for tile in rows:
 			# render dirt on display
 			if tile == '1':
-				display.blit(dirtIcon, (xAxis * tileDimension, yAxis * tileDimension))
+				display.blit(dirtIcon, (xAxis * tileDimension - scrollValue[0], yAxis * tileDimension - scrollValue[1]))
 			# render grass on display
 			if tile == '2':
-				display.blit(grassIcon, (xAxis * tileDimension, yAxis * tileDimension))
+				display.blit(grassIcon, (xAxis * tileDimension - scrollValue[0], yAxis * tileDimension - scrollValue[1]))
 			if tile != '0':
-				tiles.append(pygame.Rect(xAxis * tileDimension, yAxis * tileDimension, tileDimension, tileDimension))
+				tiles.append(pygame.Rect(xAxis * tileDimension, yAxis * tileDimension , tileDimension, tileDimension))
 			xAxis += 1
 		yAxis += 1
 
@@ -159,7 +169,7 @@ while True:
 		gravTimer += 1
 	
 	# Renders Character 
-	display.blit(charIdle, (playerRect.x, playerRect.y))
+	display.blit(charIdle, (playerRect.x - scrollValue[0], playerRect.y - scrollValue[1]))
 
 	# Game Events
 	for event in pygame.event.get():
