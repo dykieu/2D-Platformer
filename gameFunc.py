@@ -13,22 +13,17 @@ def loadAnimation(path, time, folderName, frames):
 
 	# grabs each image for the animation
 	for frame in time:
-		print (frame)
-		print (time)
 		# Starting file name + iteration
 		aniId = folderName + str(i)
 		location = os.path.join(path, aniId + '.png')
-		print(aniId)
 		loadAni = pygame.image.load(location)
 
 		# Copys image under aniID name
 		frames[aniId] = loadAni.copy()
-		#print (location)
 		# Iterates for run animation (For how many frames should be in that animation)
 		for j in range(frame):
 			aniData.append(aniId)
 		i += 1
-		print(i)
 
 	return aniData
 
