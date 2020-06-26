@@ -4,6 +4,8 @@ import os
 from os import path
 from pygame.locals import*
 from pygame import mixer
+from gameFunc import *
+from collision import *
 
 # Initialize python module
 pygame.init()
@@ -31,11 +33,11 @@ walkFile1 = 'walk0.png'
 walkFile2 = 'walk1.png'
 idleFile1 = 'idle0.png'
 idleFile2 = 'idle1.png'
+idleFile3 = 'idle2.png'
 
 # Grab Resources
 gameIcon = pygame.image.load(os.path.join(iconPath, iconFile))
 charIdle = pygame.image.load(os.path.join(idlePath, idleFile1))
-#charIdle = pygame.image.load(os.path.join(walkPath, animatedWalk1))
 grassIcon = pygame.image.load(os.path.join(envPath, grassFile))
 dirtIcon = pygame.image.load(os.path.join(envPath, dirtFile))
 darkDirtIcon = pygame.image.load(os.path.join(envPath, darkDirtFile))
@@ -70,126 +72,26 @@ jumpHeight = -6
 movSpeed = 4
 moveRight = False
 moveLeft = False
-playerRect = pygame.Rect(playerStart[0], playerStart[1], charIdle.get_width() - 50, charIdle.get_height()) 	# rectangle used for collision
+playerRect = pygame.Rect(playerStart[0], playerStart[1], charIdle.get_width(), charIdle.get_height()) 	# rectangle used for collision
 testRect = pygame.Rect(100, 700, 100, 50)
 
 # Background music
-print(os.path.join(soundPath, bgmFile))
 mixer.music.load(os.path.join(soundPath, bgmFile))
 mixer.music.set_volume(.1)
 mixer.music.play(-1)
 
-def getMap(path):
-	print (path)
-	# Opens file grabs data and then splits on every newline
-	openFile = open(path, 'r')
-	data = openFile.read()
-	openFile.close()
-	data = data.split('\n')
-	temp = []
-	# convert each line into a list
-	for line in data:
-		temp.append(list(line))
-	return temp
-
 gameMap = getMap(os.path.join(envPath, mapFile))
-
-global frames
-frames = {}
-
-def loadAnimation(path, time, folderName):
-	global frames
-	#print(path)
-
-	# grabs folder
-	#aniName = path.split()[-1]
-	#print(aniName)
-
-	# Images for each frame
-	aniData = []
-	i = 0
-
-	# grabs each image for the animation
-	for frame in time:
-		# Starting file name + iteration
-		aniId = folderName + str(i)
-		location = os.path.join(path, aniId + '.png')
-		print(location)
-		loadAni = pygame.image.load(location)
-
-		# Copys image under aniID name
-		frames[aniId] = loadAni.copy()
-		#print (location)
-		# Iterates for run animation (For how many frames should be in that animation)
-		for j in range(frame):
-			aniData.append(aniId)
-		i += 1
-	return aniData
-
-# Detect player movement change change
-def changeAni(oldAction, frame, newAction):
-	if oldAction != newAction:
-		oldAction = newAction
-		frame = 0
-	return oldAction, frame
-
 
 # Loads all frames into a list
 aniDb = {}
-aniDb['idle'] = loadAnimation(idlePath, [7, 7], 'idle')
-aniDb['walk'] = loadAnimation(walkPath, [7, 7], 'walk')
+frames = {}
+aniDb['idle'] = loadAnimation(idlePath, [17, 17, 17], 'idle', frames)
+aniDb['walk'] = loadAnimation(walkPath, [10, 10], 'walk', frames)
 
+# Char animation
 playerAction = 'idle'
 playerFrame = 0
 dirChange = False
-
-# Collision Function
-def collision (rectObj, tiles):
-	collided = []
-
-	# Iterates through all tiles and tests if obj collided with it
-	for tile in tiles:
-		if rectObj.colliderect(tile):
-			collided.append(tile)
-	return collided
-
-# Movement Function (Whats moving, how many moves, on what)
-def movement (rectObj, move, tiles):
-	collisionTypes = {
-		'top': False,
-		'bot': False,
-		'right': False,
-		'left': False
-	}
-
-	# Make x movement and test for collision
-	rectObj.x += move[0]
-	collided = collision(rectObj, tiles)
-
-	for tile in collided:
-		# Test positive x movement collision
-		if move[0] > 0:
-			rectObj.right = tile.left
-			collisionTypes['right'] = True
-		# Test negative x movement collision
-		elif move[0] < 0:
-			rectObj.left = tile.right
-			collisionTypes['left'] = True
-	
-	# Make y movement and test for collision
-	rectObj.y += move[1]
-	collided = collision(rectObj, tiles)
-
-	for tile in collided:
-		# test bottom collision
-		if move[1] > 0:
-			rectObj.bottom = tile.top
-			collisionTypes['bot'] = True
-		# test top collision
-		elif move[1] < 0:
-			rectObj.top = tile.bottom
-			collisionTypes['top'] = True
-	return rectObj, collisionTypes
 
 # Game Loops
 while True:
